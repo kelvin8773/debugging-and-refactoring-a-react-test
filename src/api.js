@@ -1,4 +1,5 @@
 import axios from "axios";
+console.log('import real api');
 
 async function getPosts() {
   const url = "https://www.reddit.com/r/reactjs/top.json?t=year&limit=100";
