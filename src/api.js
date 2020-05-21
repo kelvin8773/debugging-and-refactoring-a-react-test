@@ -1,5 +1,4 @@
 import axios from "axios";
-
 console.log('use real api');
 
 async function getPosts() {
