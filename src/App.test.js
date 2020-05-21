@@ -1,7 +1,9 @@
 import React from "react";
-import { render, fireEvent } from "@testing-library/react";
+import { render, fireEvent, waitForElementToBeRemoved, within } from "@testing-library/react";
 import App from "./App";
 import mockPosts from "./__mocks__/mockPosts.json";
+
+jest.mock('./api');
 
 const weekdays = [
   "Sunday",
@@ -23,22 +25,24 @@ mockPosts.sort((a, b) => getPostDay(a) - getPostDay(b));
 test.each(weekdays)(
   "shows table containing correct posts for %s",
   async (weekday) => {
-    const { getByText, getByRole, getAllByRole } = render(<App />);
+    const { getByText, getByRole, getAllByRole, getByLabelText } = render(<App />);
 
-    const weekdayButton = getByText(weekday);
-    fireEvent.click(weekdayButton);
+    const select = getByLabelText(/Selected weekday/);
+    fireEvent.change(select, { target: { value: weekday } });
 
+    await waitForElementToBeRemoved(() => getByText(/Loading/));
     const day = weekdays.indexOf(weekday);
-    const postIndex = mockPosts.findIndex((post) => getPostDay(post) === day);
 
+    const postsForWeekday = mockPosts.filter((post) => getPostDay(post) === day);
     getByRole("table");
     const rows = getAllByRole("row");
 
-    for (let i = 0; i < rows.length; i += 1) {
-      const post = mockPosts[postIndex + i];
-      getByText(post.author);
-      getByText(post.title);
-      getByText(post.score.toString());
-    }
+    postsForWeekday.forEach((post, index) => {
+      const row = rows[index + 1]
+      within(row).getByText(post.author);
+      within(row).getByText(post.title);
+      within(row).getByText(post.score.toString());
+    })
+
   }
 );
