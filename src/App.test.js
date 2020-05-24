@@ -1,5 +1,7 @@
 import React from "react";
-import { render, fireEvent, waitForElementToBeRemoved, within } from "@testing-library/react";
+import { render, waitForElementToBeRemoved, within, screen } from "@testing-library/react";
+import userEvent from '@testing-library/user-event';
+
 import App from "./App";
 import mockPosts from "./__mocks__/mockPosts.json";
 
@@ -25,17 +27,18 @@ mockPosts.sort((a, b) => getPostDay(a) - getPostDay(b));
 test.each(weekdays)(
   "shows table containing correct posts for %s",
   async (weekday) => {
-    const { getByText, getByRole, getAllByRole, getByLabelText } = render(<App />);
+    render(<App />);
 
-    const select = getByLabelText(/Selected weekday/);
-    fireEvent.change(select, { target: { value: weekday } });
+    const select = screen.getByLabelText(/Selected weekday/);
+    userEvent.selectOptions(select, weekday);
 
-    await waitForElementToBeRemoved(() => getByText(/Loading/));
+    await waitForElementToBeRemoved(() => screen.getByText(/Loading/));
     const day = weekdays.indexOf(weekday);
 
     const postsForWeekday = mockPosts.filter((post) => getPostDay(post) === day);
-    getByRole("table");
-    const rows = getAllByRole("row");
+    screen.getByRole("table");
+    const rows = screen.getAllByRole("row");
+    // screen.debug(rows);
 
     postsForWeekday.forEach((post, index) => {
       const row = rows[index + 1]
